@@ -1,0 +1,10 @@
+>DECIMAL_CS_VERSION=67
+
+////////////////////////////////////////////////////
+// Over-the-Air Update Bootloader default CS keys //
+////////////////////////////////////////////////////
+
+// (0004) - User keys
+// User Key 5 :output on PIO 12,no input
+// User Key 6 :EEPROM Write-Protect enabled active low on PIO 13
+&USER_KEYS = 0004 0001 1e12 1e5a 0002 006c 004d 00a9
