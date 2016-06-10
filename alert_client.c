@@ -49,6 +49,7 @@
 #include "gatt_service.h"
 #include "csr_ota_service.h"
 #include "byte_queue.h"   /* Imported from uartio example */
+#include <reset.h>
 
 /*============================================================================*
  *  Private Function Prototypes
@@ -2300,6 +2301,8 @@ extern void HandlePIOChangedEvent(uint32 pio_changed)
 
     if(pio_changed & PIO_BIT_MASK(BUTTON_PIO))
     {
+        writeString("HandlePIOChangedEvent");
+        
         /* PIO changed */
         pios = PioGets();
         if(!(pios & PIO_BIT_MASK(BUTTON_PIO)))
@@ -2730,6 +2733,7 @@ static void processRxCmd(void)
                  /* Read the voltage level of an analogue port */
                  case cmd_reset:
                     writeString("reset command");
+                    WarmReset();
                     break;
 
                  default:
@@ -2859,11 +2863,12 @@ void AppInit(sleep_state LastSleepState)
     /* Initialize the application timers */
     TimerInit(MAX_APP_TIMERS, (void*)app_timers);
 
-    SleepModeChange(sleep_mode_never);
+    
 #ifdef DEBUG_THRU_UART
     /* This will enable the debug prints over the UART */
     DebugInit(1, uartRxDataCallback, NULL);
-    writeString("Alert Tag Init");
+    //SleepModeChange(sleep_mode_never);
+    writeString("\nAlert Tag Init");
 #endif
 
     /* Initialize GATT entity */
@@ -2992,20 +2997,24 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
     switch (event_code)
     {
         case GATT_ADD_DB_CFM:
+            writeString("GATT_ADD_DB_CFM");
             handleSignalGattDbCfm((GATT_ADD_DB_CFM_T*)event_data);
         break;
 
         case LM_EV_CONNECTION_COMPLETE:
+            writeString("LM_EV_CONNECTION_COMPLETE");
             /* Handle the LM connection complete event. */
             handleSignalLmEvConnectionComplete(
                                     (LM_EV_CONNECTION_COMPLETE_T*)event_data);
         break;
 
         case GATT_CONNECT_CFM:
+            writeString("GATT_CONNECT_CFM");
             handleSignalGattConnectCFM((GATT_CONNECT_CFM_T *)event_data);
         break;
 
         case GATT_SERV_INFO_IND:
+            writeString("GATT_SERV_INFO_IND");
             /* This service info indication comes for every service present on
              * the server.
              */
@@ -3013,12 +3022,14 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_DISC_ALL_PRIM_SERV_CFM:
+            writeString("GATT_DISC_ALL_PRIM_SERV_CFM");
             /* This signal comes on completion of primary service discovery */
             handleGattDiscAllPrimServCfm
                                 ((GATT_DISC_ALL_PRIM_SERV_CFM_T *)event_data);
         break;
 
         case GATT_CHAR_DECL_INFO_IND:
+            writeString("GATT_CHAR_DECL_INFO_IND");
             /* This signal comes when gatt client starts procedure for
              * discovering all the characterstics
              */
@@ -3026,12 +3037,14 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_DISC_SERVICE_CHAR_CFM:
+            writeString("GATT_DISC_SERVICE_CHAR_CFM");
             /* This signal comes on completion of characteristic discovery */
             handleGattDiscServCharCfm
                     ((GATT_DISC_SERVICE_CHAR_CFM_T *) event_data);
         break;
 
         case GATT_CHAR_DESC_INFO_IND:
+            writeString("GATT_CHAR_DESC_INFO_IND");
         /* This indication signal comes on characteristic descriptor
          * discovery
          */
@@ -3042,6 +3055,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_DISC_ALL_CHAR_DESC_CFM:
+            writeString("GATT_DISC_ALL_CHAR_DESC_CFM");
             /* This signal comes on completion of characteristic descriptor
              * discovery
              */
@@ -3062,6 +3076,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_READ_CHAR_VAL_CFM:
+            writeString("GATT_READ_CHAR_VAL_CFM");
             {
                 if(((GATT_READ_CHAR_VAL_CFM_T *)event_data)->result ==
                                                     sys_status_success)
@@ -3100,6 +3115,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_WRITE_CHAR_VAL_CFM:
+            writeString("GATT_WRITE_CHAR_VAL_CFM");
             {
                 if(((GATT_WRITE_CHAR_VAL_CFM_T *)event_data)->result ==
                                                     sys_status_success)
@@ -3167,15 +3183,18 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case LM_EV_ENCRYPTION_CHANGE:
+            writeString("LM_EV_ENCRYPTION_CHANGE");
             handleSignalLMEncryptionChange(event_data);
         break;
 
         case LS_CONNECTION_PARAM_UPDATE_CFM:
+            writeString("LS_CONNECTION_PARAM_UPDATE_CFM");
             handleSignalLsConnUpdateSignalCfm(
                             (LS_CONNECTION_PARAM_UPDATE_CFM_T *)event_data);
         break;
 
         case LM_EV_CONNECTION_UPDATE:
+            writeString("LM_EV_CONNECTION_UPDATE");
             /* This event is sent by the controller on connection parameter
              * update.
              */
@@ -3184,29 +3203,35 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case LS_CONNECTION_PARAM_UPDATE_IND:
+            writeString("LS_CONNECTION_PARAM_UPDATE_IND");
             handleSignalLsConnParamUpdateInd(
                             (LS_CONNECTION_PARAM_UPDATE_IND_T *)event_data);
         break;
 
         case SM_DIV_APPROVE_IND:
+            writeString("SM_DIV_APPROVE_IND");
             handleSignalSmDivApproveInd((SM_DIV_APPROVE_IND_T *)event_data);
         break;
 
         case SM_KEYS_IND:
+            writeString("SM_KEYS_IND");
             handleSignalSmKeysInd((SM_KEYS_IND_T *)event_data);
         break;
 
         case SM_PAIRING_AUTH_IND:
+            writeString("SM_PAIRING_AUTH_IND");
             /* Authorize or Reject the pairing request */
             handleSignalSmPairingAuthInd((SM_PAIRING_AUTH_IND_T*)event_data);
         break;
 
         case SM_SIMPLE_PAIRING_COMPLETE_IND:
+            writeString("SM_SIMPLE_PAIRING_COMPLETE_IND");
             handleSignalSmSimplePairingCompleteInd(
                             (SM_SIMPLE_PAIRING_COMPLETE_IND_T *)event_data);
         break;
 
         case GATT_DISCONNECT_IND:
+            writeString("GATT_DISCONNECT_IND");
             /* Disconnect procedure triggered by remote host or due to
              * link loss is considered complete on reception of
              * LM_EV_DISCONNECT_COMPLETE event. So, it gets handled on
@@ -3215,6 +3240,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_DISCONNECT_CFM:
+            writeString("GATT_DISCONNECT_CFM");
             /* Confirmation for the completion of GattDisconnectReq()
              * procedure is ignored as the procedure is considered complete
              * on reception of LM_EV_DISCONNECT_COMPLETE event. So, it gets
@@ -3223,6 +3249,7 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case LM_EV_DISCONNECT_COMPLETE:
+            writeString("LM_EV_DISCONNECT_COMPLETE");
         {
             /* Disconnect procedures either triggered by application or remote
              * host or link loss case are considered completed on reception
@@ -3234,11 +3261,13 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
         break;
 
         case GATT_CANCEL_CONNECT_CFM:
+            writeString("GATT_CANCEL_CONNECT_CFM");
             handleSignalGattCancelConnectCFM(
                     (GATT_CANCEL_CONNECT_CFM_T*)event_data);
         break;
 
         case GATT_NOT_CHAR_VAL_IND:
+            writeString("GATT_NOT_CHAR_VAL_IND");
             /* A notification has been received */
             /* Depending on the handle , it will get handled in corresponding
              * function.
@@ -3250,13 +3279,17 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *event_data)
 
 
         case LM_EV_NUMBER_COMPLETED_PACKETS: /* FALLTHROUGH */
+            writeString("LM_EV_NUMBER_COMPLETED_PACKETS");
         case GATT_CHAR_VAL_NOT_CFM: /* FALLTHROUGH */
+            writeString("GATT_CHAR_VAL_NOT_CFM");
         break;
+        
         case GATT_ACCESS_IND: /* GATT access indication */
             /* Indicates that an attribute controlled directly by the
              * application (ATT_ATTR_IRQ attribute flag is set) is being
              * read from or written to.
              */
+            writeString("GATT_ACCESS_IND");
             handleSignalGattAccessInd((GATT_ACCESS_IND_T*)event_data);
 
             break;

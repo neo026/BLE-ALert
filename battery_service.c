@@ -424,11 +424,14 @@ extern void BatteryUpdateLevel(uint16 ucid,bool low_battery)
     {
         notify = FALSE;
     }                      
-        
+
+    writeString("BatteryUpdateLevel");
+    
     if((notify == TRUE) && (ucid != GATT_INVALID_UCID)
         && (g_batt_data.level_client_config &
             gatt_client_config_notification))
     {
+        // Here are a tramsit function, interesting
         GattCharValueNotification(ucid, 
                                   HANDLE_BATT_LEVEL,
                                   1, &cur_bat_level);
